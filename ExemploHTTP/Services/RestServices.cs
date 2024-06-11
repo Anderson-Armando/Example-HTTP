@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using ExemploHTTP.Models;
 using System.Text.Json;
+using System.Diagnostics;
 
 namespace ExemploHTTP.Services
 {
@@ -16,7 +17,7 @@ namespace ExemploHTTP.Services
         private List<Post> posts;
         private JsonSerializerOptions _serializerOptions;
 
-        RestServices() 
+        RestServices()
         {
             client = new HttpClient();
             _serializerOptions = new JsonSerializerOptions
@@ -24,20 +25,29 @@ namespace ExemploHTTP.Services
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 WriteIndented = true
             };
-            
+
         }
 
-        public async Task <List<Post>> GetPostsAsync()
+        public async Task<List<Post>> getPostsAsync()
         {
             Uri uri = new Uri("https://jsonplaceholder.typicode.com/posts");
 
-            HttpResponseMessage response = await _client.GetAsync(uri);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                string content = await response.Content.ReadAsStringAsync();
-                posts = JsonSerializer.Deserialize<List<Post>>(content, _serializerOptions);
+                HttpResponseMessage response = await client.GetAsync(uri);
+                if (response.IsSuccessStatusCode)
+                {
+                    string content = await response.Content.ReadAsStringAsync();
+                    posts = JsonSerializer.Deserialize<List<Post>>(content, _serializerOptions);
 
+                }
             }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+
+            return posts;
         }
     }
 }
